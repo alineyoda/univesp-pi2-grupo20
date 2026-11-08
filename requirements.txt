@@ -1,0 +1,19 @@
+# Framework web e ORM
+Flask>=3.0,<4
+Flask-SQLAlchemy>=3.1,<4
+SQLAlchemy>=2.0,<3
+
+# Driver MySQL (puro Python) + criptografia exigida pela autenticação
+# padrão do MySQL 8 (caching_sha2_password) e por conexões SSL (TiDB/Aiven)
+PyMySQL>=1.1,<2
+cryptography>=42
+
+# Lê o arquivo .env automaticamente
+python-dotenv>=1.0,<2
+
+# Banco de fusos horários (necessário no Windows para America/Sao_Paulo)
+tzdata
+
+# Servidor de produção usado no Render (não funciona no Windows; local
+# usamos o servidor de desenvolvimento do Flask)
+gunicorn>=22; sys_platform != "win32"
