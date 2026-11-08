@@ -17,7 +17,10 @@ def create_app(config_class=Config) -> Flask:
     # Importa os models para que o SQLAlchemy conheça todas as tabelas.
     from . import models  # noqa: F401
 
-    # As rotas da API (blueprints) serão registradas nos Passos 3 e 4.
+    # Rotas da API (blueprints) e tratamento de erros em JSON.
+    from .api import registrar_api
+
+    registrar_api(app)
 
     @app.get("/api/status")
     def status():
@@ -29,14 +32,5 @@ def create_app(config_class=Config) -> Flask:
             banco = f"erro: {erro.__class__.__name__}"
         codigo = 200 if banco == "ok" else 503
         return jsonify(aplicacao="ok", banco=banco, salao=app.config["SALAO_NOME"]), codigo
-
-    @app.errorhandler(404)
-    def nao_encontrado(_erro):
-        return jsonify(erro="Recurso não encontrado."), 404
-
-    @app.errorhandler(500)
-    def erro_interno(_erro):
-        db.session.rollback()
-        return jsonify(erro="Erro interno no servidor."), 500
 
     return app

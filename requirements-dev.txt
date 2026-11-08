@@ -1,0 +1,3 @@
+# Dependências apenas para desenvolvimento/testes (não vão para o Render)
+-r requirements.txt
+pytest>=8

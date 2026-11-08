@@ -1,6 +1,6 @@
 """Configurações da aplicação, lidas de variáveis de ambiente (.env)."""
 import os
-from datetime import time
+from datetime import time, timedelta
 from urllib.parse import quote_plus
 
 from dotenv import load_dotenv
@@ -69,7 +69,8 @@ class Config:
     SQLALCHEMY_ENGINE_OPTIONS = montar_opcoes_conexao()
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
-    # Sessão de login (cookies)
+    # Sessão de login (cookies). Expira após 8 horas (um turno de trabalho).
+    PERMANENT_SESSION_LIFETIME = timedelta(hours=8)
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = "Lax"
     SESSION_COOKIE_SECURE = os.getenv("SESSION_COOKIE_SECURE", "false").lower() == "true"

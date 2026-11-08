@@ -43,6 +43,12 @@ salao/
   models.py         Models de todas as tabelas, incluindo as extensões
   cli.py            comandos: testar-conexao, executar-sql, criar-usuario
   utils.py          horário de Brasília e conversão para JSON
+  api/              rotas/controllers REST (Passo 3)
+    __init__.py     registro dos blueprints e erros em JSON
+    validacao.py    validação de campos, CPF, telefone e erros padronizados
+    auth.py         login/logout/me e proteção das rotas
+    clientes.py  profissionais.py  servicos.py
+tests/              testes automatizados (pytest)
 database/           scripts SQL (Passo 1)
 docs/MER.md         modelo de dados
 ```
@@ -56,10 +62,45 @@ flask executar-sql database/schema.sql
 flask executar-sql database/seed.sql
 ```
 
+## API REST (Passo 3)
+
+Todas as rotas, exceto o login e `/api/status`, exigem login. A autenticação usa uma sessão em cookie (HttpOnly, SameSite=Lax, válida por 8 horas). As requisições `POST`, `PUT` e `PATCH` precisam enviar JSON. Os erros sempre voltam no formato `{"erro": "...", "campos": {...}}`.
+
+| Método | Rota | Descrição |
+|--------|------|-----------|
+| POST | `/api/auth/login` | `{"email", "senha"}` inicia a sessão |
+| POST | `/api/auth/logout` | encerra a sessão |
+| GET | `/api/auth/me` | usuário logado |
+| GET | `/api/clientes?busca=` | lista clientes (busca por nome, telefone ou CPF) |
+| GET | `/api/clientes/<id>` | detalhe, com pacotes e total de agendamentos |
+| POST | `/api/clientes` | `{"nome", "telefone", "cpf"?}` |
+| PUT / PATCH | `/api/clientes/<id>` | atualização completa / parcial |
+| DELETE | `/api/clientes/<id>` | **admin**; bloqueado (409) se o cliente tiver agendamentos ou pacotes |
+| GET | `/api/profissionais?ativo=true\|false&busca=` | lista profissionais |
+| GET / POST | `/api/profissionais[/<id>]` | detalhe / cria `{"nome", "especialidade", "telefone"?}` |
+| PUT / PATCH | `/api/profissionais/<id>` | atualiza; `{"ativo": true}` reativa |
+| DELETE | `/api/profissionais/<id>` | **admin**; exclusão lógica (`ativo = false`) |
+| GET | `/api/servicos?categoria=&busca=` | lista serviços |
+| GET | `/api/servicos/categorias` | categorias existentes |
+| GET / POST | `/api/servicos[/<id>]` | detalhe / cria `{"nome", "categoria", "duracao_minutos", "preco_base"}` |
+| PUT / PATCH | `/api/servicos/<id>` | atualização completa / parcial |
+| DELETE | `/api/servicos/<id>` | **admin**; bloqueado (409) se o serviço estiver em algum agendamento ou pacote |
+
+O telefone é guardado no formato do WhatsApp: `(11) 98765-4321` vira `5511987654321`. O CPF passa pela verificação dos dígitos.
+
+### Testes automatizados
+
+Os testes usam um SQLite temporário e não alteram o MySQL:
+
+```powershell
+python -m pip install -r requirements-dev.txt
+python -m pytest -v
+```
+
 ## Andamento
 
 - [x] Passo 1: script DDL do MySQL
 - [x] Passo 2: estrutura base do Flask e Models
-- [ ] Passo 3: API REST (CRUD de Clientes, Profissionais e Serviços)
+- [x] Passo 3: API REST (login + CRUD de Clientes, Profissionais e Serviços)
 - [ ] Passo 4: Agendamentos (disponibilidade) e WhatsApp em modo simulado
 - [ ] Passo 5: Front-end acessível (agenda, formulários e dashboard)
