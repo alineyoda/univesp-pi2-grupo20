@@ -23,10 +23,14 @@ def _dividir_script(conteudo: str) -> list[str]:
     conexão já aponta para o banco configurado no .env (no TiDB/Aiven o
     nome do banco pode ser diferente).
     """
-    linhas = [l for l in conteudo.splitlines() if not l.strip().startswith("--")]
+    def sem_comentarios(texto: str) -> str:
+        return "\n".join(l for l in texto.splitlines() if not l.strip().startswith("--"))
+
     comandos = []
-    for comando in "\n".join(linhas).split(";"):
-        comando = comando.strip()
+    # 1º remove linhas de comentário (que podem conter ";"); 2º, após separar,
+    # remove o comentário que estava depois do ";" do comando anterior.
+    for comando in sem_comentarios(conteudo).split(";"):
+        comando = sem_comentarios(comando).strip()
         if not comando:
             continue
         if re.match(r"^(CREATE\s+DATABASE|USE\s)", comando, re.IGNORECASE):
@@ -57,7 +61,9 @@ def registrar_comandos(app: Flask) -> None:
             comandos = _dividir_script(f.read())
         with db.engine.begin() as conexao:
             for comando in comandos:
-                conexao.exec_driver_sql(comando)
+                # O driver trata "%" como marcador de parâmetro; "%%" = "%" literal
+                # (necessário para os links wa.me, que contêm %20, %C3...).
+                conexao.exec_driver_sql(comando.replace("%", "%%"))
         click.secho(f"{len(comandos)} comandos executados de {arquivo}.", fg="green")
 
     @app.cli.command("criar-usuario")

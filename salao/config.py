@@ -83,6 +83,8 @@ class Config:
     SALAO_DIAS_FUNCIONAMENTO = [
         int(d) for d in os.getenv("SALAO_DIAS_FUNCIONAMENTO", "0,1,2,3,4,5").split(",")
     ]
+    # Intervalo entre os horários livres sugeridos pela agenda
+    AGENDA_INTERVALO_MINUTOS = int(os.getenv("AGENDA_INTERVALO_MINUTOS", "15"))
 
     # WhatsApp
     WHATSAPP_MODO = os.getenv("WHATSAPP_MODO", "simulado")

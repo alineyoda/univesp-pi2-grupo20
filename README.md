@@ -48,6 +48,10 @@ salao/
     validacao.py    validação de campos, CPF, telefone e erros padronizados
     auth.py         login/logout/me e proteção das rotas
     clientes.py  profissionais.py  servicos.py
+    agendamentos.py pagamentos.py pacotes.py notificacoes.py   (Passo 4)
+  services/         regras de negócio (Passo 4)
+    agenda.py       disponibilidade, conflitos, janela do salão, pacotes, status
+    whatsapp.py     mensagens, link wa.me, lembretes e respostas simuladas
 tests/              testes automatizados (pytest)
 database/           scripts SQL (Passo 1)
 docs/MER.md         modelo de dados
@@ -88,6 +92,41 @@ Todas as rotas, exceto o login e `/api/status`, exigem login. A autenticação u
 
 O telefone é guardado no formato do WhatsApp: `(11) 98765-4321` vira `5511987654321`. O CPF passa pela verificação dos dígitos.
 
+## Agendamentos, pagamentos, pacotes e WhatsApp (Passo 4)
+
+As regras de negócio ficam em [`salao/services/`](salao/services/) e as rotas em [`salao/api/`](salao/api/).
+
+| Método | Rota | Descrição |
+|--------|------|-----------|
+| GET | `/api/agenda?inicio=&fim=&profissional_id=` | itens do período para o calendário diário ou semanal, mais o horário do salão e os profissionais ativos |
+| GET | `/api/disponibilidade?profissional_id=&servico_id=&data=` | horários livres, a cada 15 minutos |
+| GET | `/api/agendamentos?inicio=&fim=&cliente_id=&status=` | lista agendamentos |
+| GET | `/api/agendamentos/<id>` | detalhe com itens, pagamentos e notificações |
+| POST | `/api/agendamentos` | `{"cliente_id", "itens": [{"servico_id", "profissional_id", "data_hora_inicio", "pacote_cliente_id"?, "subtotal"?}]}` |
+| PUT | `/api/agendamentos/<id>` | reagenda (substitui os itens) e reenvia a confirmação |
+| PATCH | `/api/agendamentos/<id>/status` | `{"status": "confirmado\|concluido\|falta\|cancelado"}` |
+| POST | `/api/agendamentos/<id>/cancelar` | cancela e devolve as sessões de pacote |
+| POST | `/api/agendamentos/<id>/notificar` | gera de novo a mensagem `{"tipo": "confirmacao\|lembrete"}` |
+| GET / POST | `/api/pagamentos` | lista / registra `{"agendamento_id" OU "pacote_cliente_id", "forma_pagamento", "valor_pago"}` |
+| DELETE | `/api/pagamentos/<id>` | estorno (**admin**) |
+| GET / POST | `/api/pacotes` | lista (`?cliente_id=&disponiveis=true`) / vende `{"cliente_id", "servico_id", "qtd_sessoes_total", "valor_pacote", "pagamento"?}` |
+| GET / PATCH / DELETE | `/api/pacotes/<id>` | detalhe com sessões / edita ou cancela / exclui (só se nunca foi usado) |
+| GET | `/api/notificacoes?status=&tipo=` | histórico de mensagens |
+| POST | `/api/notificacoes/<id>/resposta` | simula a resposta do cliente `{"resposta": "confirmou\|cancelou"}` |
+| POST | `/api/tarefas/lembretes` | rotina de lembretes (cabeçalho `X-Cron-Token` ou usuário logado) |
+
+**Regras da agenda**
+
+- O fim de cada serviço é calculado como início + duração do serviço.
+- Todos os serviços precisam começar no futuro, num dia de funcionamento, e terminar até o fechamento do salão.
+- Um profissional não pode ter dois atendimentos sobrepostos. Encostar é permitido: um serviço que termina às 10:00 não impede outro que começa às 10:00. Agendamentos cancelados liberam o horário.
+- **Simultâneos:** o mesmo horário com profissionais diferentes. **Sequenciais:** um serviço depois do outro. O valor total é a soma dos subtotais.
+- Na hora de gravar, o sistema bloqueia temporariamente os profissionais envolvidos (`SELECT ... FOR UPDATE`). Isso impede que duas pessoas reservem o mesmo horário ao mesmo tempo.
+- **Pacote:** o atendimento sai por R$ 0 e consome uma sessão. Se o agendamento for cancelado, a sessão volta para o pacote. Em caso de falta, a sessão é considerada usada.
+- **Mudança de status:** um agendamento `agendado` pode passar para `confirmado`, `concluido`, `falta` ou `cancelado`. Um `confirmado` pode passar para `concluido`, `falta` ou `cancelado`. Os outros três status são finais.
+
+**Lembretes automáticos em produção:** no [cron-job.org](https://cron-job.org), crie uma tarefa a cada 15 minutos com `POST https://SEU-APP.onrender.com/api/tarefas/lembretes` e o cabeçalho `X-Cron-Token: <CRON_TOKEN>`. Essa chamada também "acorda" o serviço gratuito do Render.
+
 ### Testes automatizados
 
 Os testes usam um SQLite temporário e não alteram o MySQL:
@@ -102,5 +141,5 @@ python -m pytest -v
 - [x] Passo 1: script DDL do MySQL
 - [x] Passo 2: estrutura base do Flask e Models
 - [x] Passo 3: API REST (login + CRUD de Clientes, Profissionais e Serviços)
-- [ ] Passo 4: Agendamentos (disponibilidade) e WhatsApp em modo simulado
+- [x] Passo 4: Agendamentos (disponibilidade), pagamentos, pacotes e WhatsApp em modo simulado
 - [ ] Passo 5: Front-end acessível (agenda, formulários e dashboard)

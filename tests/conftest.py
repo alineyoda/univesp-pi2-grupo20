@@ -1,4 +1,6 @@
 """Configuração dos testes: banco SQLite em memória (não toca no MySQL)."""
+from datetime import time
+
 import pytest
 
 from salao import create_app
@@ -12,6 +14,15 @@ class ConfigTeste(Config):
     SECRET_KEY = "chave-de-teste"
     SQLALCHEMY_DATABASE_URI = "sqlite://"
     SQLALCHEMY_ENGINE_OPTIONS = {}
+    # Valores fixos: os testes não dependem do .env de cada máquina
+    SALAO_NOME = "Salão Teste"
+    SALAO_ABERTURA = time(8, 0)
+    SALAO_FECHAMENTO = time(20, 0)
+    SALAO_DIAS_FUNCIONAMENTO = [0, 1, 2, 3, 4, 5]
+    AGENDA_INTERVALO_MINUTOS = 15
+    LEMBRETE_HORAS_ANTES = 24
+    WHATSAPP_MODO = "simulado"
+    CRON_TOKEN = ""
 
 
 @pytest.fixture

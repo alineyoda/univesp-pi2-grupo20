@@ -266,6 +266,14 @@ class PacoteCliente(SerializavelMixin, db.Model):
         return self.qtd_sessoes_total - self.sessoes_realizadas
 
     @property
+    def valor_pago(self) -> Decimal:
+        return sum((p.valor_pago for p in self.pagamentos), Decimal("0.00"))
+
+    @property
+    def saldo_devedor(self) -> Decimal:
+        return max(self.valor_pacote - self.valor_pago, Decimal("0.00"))
+
+    @property
     def disponivel(self) -> bool:
         return self.status_pacote == "ativo" and self.sessoes_restantes > 0
 
@@ -290,6 +298,8 @@ class PacoteCliente(SerializavelMixin, db.Model):
             cliente_nome=self.cliente.nome if self.cliente else None,
             servico_nome=self.servico.nome if self.servico else None,
             sessoes_restantes=self.sessoes_restantes,
+            valor_pago=serializar(self.valor_pago),
+            saldo_devedor=serializar(self.saldo_devedor),
         )
         return dados
 
