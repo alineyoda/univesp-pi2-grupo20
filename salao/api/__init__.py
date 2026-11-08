@@ -1,16 +1,18 @@
 """API RESTful: registro dos blueprints e tratamento de erros em JSON."""
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 from sqlalchemy.exc import IntegrityError
 from werkzeug.exceptions import HTTPException
 
 from ..extensions import db
-from . import agendamentos, auth, clientes, notificacoes, pacotes, pagamentos, profissionais, servicos
+from . import (agendamentos, auth, clientes, dashboard, notificacoes, pacotes, pagamentos,
+               profissionais, servicos)
 from .validacao import ErroApi
 
 BLUEPRINTS = (
     auth.bp, clientes.bp, profissionais.bp, servicos.bp,                  # Passo 3
     agendamentos.bp, pagamentos.bp, pacotes.bp, notificacoes.bp,          # Passo 4
     notificacoes.bp_tarefas,
+    dashboard.bp,                                                         # Passo 5
 )
 
 
@@ -31,6 +33,9 @@ def registrar_api(app: Flask) -> None:
 
     @app.errorhandler(HTTPException)
     def tratar_http(erro: HTTPException):
+        # Fora da API (ex.: arquivo estático inexistente) mantém a resposta padrão
+        if not request.path.startswith("/api/"):
+            return erro
         mensagens = {
             404: "Recurso não encontrado.",
             405: "Método não permitido para este endereço.",

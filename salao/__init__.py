@@ -1,5 +1,5 @@
 """Fábrica da aplicação Flask (padrão "application factory")."""
-from flask import Flask, jsonify
+from flask import Flask, jsonify, render_template
 from sqlalchemy import text
 
 from .cli import registrar_comandos
@@ -21,6 +21,12 @@ def create_app(config_class=Config) -> Flask:
     from .api import registrar_api
 
     registrar_api(app)
+
+    @app.get("/")
+    def pagina_principal():
+        """Single Page Application: o roteamento das telas é feito no
+        navegador (#/agenda, #/clientes...) e os dados vêm da /api/."""
+        return render_template("index.html", salao_nome=app.config["SALAO_NOME"])
 
     @app.get("/api/status")
     def status():

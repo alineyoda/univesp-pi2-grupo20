@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Sistema de agendamentos do {{ salao_nome }}">
+  <title>{{ salao_nome }} · Agenda</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%236b2c5f'/%3E%3Cpath d='M9 22l7-12 7 12' stroke='white' stroke-width='3' fill='none' stroke-linecap='round'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/estilo.css') }}">
+  <script type="module" src="{{ url_for('static', filename='js/app.js') }}"></script>
+</head>
+<body>
+  <!-- WCAG 2.4.1: link para pular direto ao conteúdo -->
+  <a class="pular-link" href="#conteudo">Pular para o conteúdo principal</a>
+
+  <!-- ================= TELA DE LOGIN ================= -->
+  <main id="tela-login" class="login" hidden>
+    <div class="login__cartao">
+      <p class="login__marca" aria-hidden="true">✂</p>
+      <h1 class="login__titulo">{{ salao_nome }}</h1>
+      <p class="login__subtitulo">Acesse o sistema de agendamentos</p>
+
+      <form id="form-login" novalidate>
+        <div id="login-erro" class="alerta alerta--erro" role="alert" hidden></div>
+        <div class="campo">
+          <label for="login-email">E-mail</label>
+          <input id="login-email" name="email" type="email" autocomplete="username"
+                 required aria-required="true" spellcheck="false">
+        </div>
+        <div class="campo">
+          <label for="login-senha">Senha</label>
+          <div class="campo__senha">
+            <!-- WCAG 3.3.8: permite colar e usar gerenciador de senhas -->
+            <input id="login-senha" name="senha" type="password" autocomplete="current-password"
+                   required aria-required="true">
+            <button type="button" class="botao botao--fantasma" id="mostrar-senha"
+                    aria-pressed="false" aria-controls="login-senha">Mostrar senha</button>
+          </div>
+        </div>
+        <button type="submit" class="botao botao--primario botao--largo">Entrar</button>
+      </form>
+    </div>
+  </main>
+
+  <!-- ================= APLICAÇÃO ================= -->
+  <div id="tela-app" hidden>
+    <header class="topo">
+      <div class="topo__marca">
+        <span class="topo__logo" aria-hidden="true">✂</span>
+        <span class="topo__nome">{{ salao_nome }}</span>
+      </div>
+
+      <button type="button" class="botao botao--fantasma topo__menu" id="botao-menu"
+              aria-expanded="false" aria-controls="menu-principal">Menu</button>
+
+      <nav id="menu-principal" class="menu" aria-label="Menu principal">
+        <ul>
+          <li><a href="#/dashboard" data-rota="dashboard">Painel</a></li>
+          <li><a href="#/agenda" data-rota="agenda">Agenda</a></li>
+          <li><a href="#/clientes" data-rota="clientes">Clientes</a></li>
+          <li><a href="#/profissionais" data-rota="profissionais">Profissionais</a></li>
+          <li><a href="#/servicos" data-rota="servicos">Serviços</a></li>
+          <li><a href="#/pacotes" data-rota="pacotes">Pacotes</a></li>
+          <li><a href="#/notificacoes" data-rota="notificacoes">WhatsApp</a></li>
+        </ul>
+      </nav>
+
+      <div class="topo__usuario">
+        <span id="usuario-nome" class="topo__usuario-nome"></span>
+        <button type="button" class="botao botao--fantasma" id="botao-sair">Sair</button>
+      </div>
+    </header>
+
+    <!-- tabindex=-1 permite mover o foco para cá ao trocar de tela -->
+    <main id="conteudo" class="conteudo" tabindex="-1"></main>
+
+    <footer class="rodape">
+      <!-- WCAG 3.2.6: ajuda sempre no mesmo lugar -->
+      <p>{{ salao_nome }} · Sistema de agendamentos · PI2 Univesp Grupo 20 ·
+        <a href="#/ajuda">Ajuda e atalhos de teclado</a></p>
+    </footer>
+  </div>
+
+  <!-- Região "viva": leitores de tela anunciam as mensagens colocadas aqui -->
+  <div id="avisos" class="avisos" role="status" aria-live="polite" aria-atomic="true"></div>
+  <div id="avisos-urgentes" class="visualmente-oculto" role="alert" aria-live="assertive"></div>
+
+  <noscript>
+    <p class="alerta alerta--erro">Este sistema precisa de JavaScript ativado para funcionar.</p>
+  </noscript>
+</body>
+</html>

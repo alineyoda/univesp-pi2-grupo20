@@ -136,10 +136,41 @@ python -m pip install -r requirements-dev.txt
 python -m pytest -v
 ```
 
+## Front-end e Dashboard (Passo 5)
+
+Rode `python app.py`, abra <http://127.0.0.1:5000> e faça login com o usuário criado em `flask criar-usuario`.
+
+É uma **Single Page Application** em HTML, CSS e JavaScript puro, sem bibliotecas nem etapa de build. O Flask entrega a página [`salao/templates/index.html`](salao/templates/index.html), e o JavaScript (módulos ES em [`salao/static/js/`](salao/static/js/)) troca de tela pelo endereço (`#/agenda`, `#/clientes`...) e busca os dados na `/api/` com `fetch`.
+
+| Tela | O que faz |
+|------|-----------|
+| **Painel** | indicadores do período (agendamentos, faturamento recebido e previsto, ticket médio, taxa de faltas, pacotes ativos), gráficos de atendimentos e de faturamento por dia, atendimentos de hoje, serviços mais realizados, desempenho por profissional e formas de pagamento |
+| **Agenda** | grade **diária** (uma coluna por profissional) e **semanal** (uma coluna por dia), com horários livres e ocupados; clicar num horário livre abre o formulário já preenchido |
+| **Agendamento** | vários serviços, **simultâneos** ou **em sequência**, mostrando só horários livres; uso de **pacote**; total calculado na hora |
+| **Detalhes** | mudança de status (confirmar, concluir, falta, cancelar), remarcação, **pagamentos** e mensagens de **WhatsApp** com o link `wa.me` e a simulação de resposta do cliente |
+| **Clientes / Profissionais / Serviços** | cadastro com busca; CPF parcialmente oculto na lista (LGPD); desativar e reativar profissionais |
+| **Pacotes** | venda com pagamento opcional, sessões usadas e restantes, pagamentos e cancelamento |
+| **WhatsApp** | histórico de mensagens e botão para gerar os lembretes das próximas 24h |
+
+```
+salao/templates/index.html     estrutura da página, login, menu e regiões de aviso (aria-live)
+salao/static/css/estilo.css    estilos com contrastes documentados
+salao/static/js/
+  app.js                       login, roteamento das telas e página de ajuda
+  api.js                       cliente fetch da API e sessão
+  ui.js                        diálogos acessíveis, avisos, erros de formulário, formatação
+  componentes/crud.js          tela genérica de cadastro
+  componentes/agendamento.js   formulário e detalhes do agendamento
+  componentes/graficos.js      gráficos SVG acessíveis
+  paginas/*.js                 dashboard, agenda, clientes, profissionais, servicos, pacotes, notificacoes
+```
+
+A acessibilidade (WCAG 2.2 AA) está documentada critério a critério em [`docs/ACESSIBILIDADE.md`](docs/ACESSIBILIDADE.md). A auditoria automática com axe-core encontrou 0 violações em todas as telas e diálogos.
+
 ## Andamento
 
 - [x] Passo 1: script DDL do MySQL
 - [x] Passo 2: estrutura base do Flask e Models
 - [x] Passo 3: API REST (login + CRUD de Clientes, Profissionais e Serviços)
 - [x] Passo 4: Agendamentos (disponibilidade), pagamentos, pacotes e WhatsApp em modo simulado
-- [ ] Passo 5: Front-end acessível (agenda, formulários e dashboard)
+- [x] Passo 5: Front-end acessível (agenda, formulários e dashboard)
